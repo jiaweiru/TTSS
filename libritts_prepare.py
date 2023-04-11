@@ -8,7 +8,7 @@ import logging
 import torchaudio
 
 logger = logging.getLogger(__name__)
-LIBRITTS_URL_PREFIX = "https://us.openslr.org/resources/60/"
+LIBRITTS_URL_PREFIX = "https://www.openslr.org/resources/60/"
 
 
 def prepare_libritts(
@@ -59,9 +59,10 @@ def prepare_libritts(
     # For every subset of the dataset, if it doesn't exist, downloads it and sets flag to resample the subset
     for subset_name in libritts_subsets:
 
-        subset_archive = os.path.join(data_folder, subset_name + ".tar.gz")
+        subset_folder = os.path.join(data_folder, subset_name)
+        subset_archive = os.path.join(subset_folder, subset_name + ".tar.gz")
 
-        subset_data = os.path.join(data_folder, "LibriTTS")
+        subset_data = os.path.join(subset_folder, "LibriTTS")
         if not check_folders(subset_data):
             logger.info(
                 f"No data found for {subset_name}. Checking for an archive file."
@@ -78,10 +79,10 @@ def prepare_libritts(
                     f"Found an archive file for {subset_name}. Unpacking."
                 )
 
-            shutil.unpack_archive(subset_archive, data_folder)
+            shutil.unpack_archive(subset_archive, subset_folder)
 
         # Collects all files matching the provided extension
-        wav_list.extend(get_all_files(data_folder, match_and=extension))
+        wav_list.extend(get_all_files(subset_folder, match_and=extension))
 
     logger.info(
         f"Creating {save_json_train}, {save_json_valid}, and {save_json_test}"
@@ -122,9 +123,9 @@ def create_json(wav_list, json_file, sample_rate):
         # Manipulates path to get relative path and uttid
         path_parts = wav_file.split(os.path.sep)
         uttid, _ = os.path.splitext(path_parts[-1])
-        relative_path = os.path.join("{data_root}", *path_parts[-5:])
+        relative_path = os.path.join("{data_root}", *path_parts[-6:])
 
-        # Gets the path for the text files and extracts the input text
+        # Gets the path for the  text files and extracts the input text
         original_text_path = os.path.join(
             "/", *path_parts[:-1], uttid + ".original.txt"
         )
